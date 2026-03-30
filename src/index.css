@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  /* ====== FONTS ====== */
+
+  --font-ubuntu: "Ubuntu", sans-serif;
+  --font-League: "League Gothic", sans-serif;
+
+  --breakpoint-sm: 640px; /* default, change if needed */
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+
+  /* ====== BRAND COLORS ====== */
+  --color-primary-50: #faf9f5;
+  --color-primary-100: #f5f2eb;
+
+  /* ====== NEUTRAL / GREY ====== */
+  --color-neutral-50: #222229;
+  --color-neutral-100: #34343d;
+  --color-neutral-200: #9b9ba3;
+
+  /* ====== SEMANTIC COLORS ====== */
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+
+  /* ====== BACKGROUND / SURFACE ====== */
+  --color-surface: #a37200;
+  --color-background: #7a5500;
+}
+
+/* Apply base font globally */
+@layer base {
+  body {
+    font-family: var(--font-ubuntu);
+    background-color: var(--color-primary-50);
+    color: var(--color-neutral-50);
+  }
+}
