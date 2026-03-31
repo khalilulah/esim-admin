@@ -23,10 +23,12 @@ function Products() {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState(emptyForm);
-  const [images, setImages] = useState<FileList | null>(null);
+  const [images, setImages] = useState<File[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-
+  const removeImage = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  };
   const fetchProducts = async () => {
     try {
       const data = await getProducts();
@@ -43,7 +45,7 @@ function Products() {
   const openCreate = () => {
     setEditing(null);
     setForm(emptyForm);
-    setImages(null);
+    setImages([]);
     setError("");
     setShowModal(true);
   };
@@ -59,7 +61,7 @@ function Products() {
       howToUse: product.howToUse ?? "",
       inStock: String(product.inStock),
     });
-    setImages(null);
+    setImages([]);
     setError("");
     setShowModal(true);
   };
@@ -82,11 +84,9 @@ function Products() {
       });
 
       // Append each image file
-      if (images) {
-        Array.from(images).forEach((file) => {
-          formData.append("images", file);
-        });
-      }
+      images.forEach((file) => {
+        formData.append("images", file);
+      });
 
       if (editing) {
         await updateProduct(editing._id, formData);
@@ -176,7 +176,7 @@ function Products() {
                 <td className="px-6 py-4 capitalize text-neutral-500">
                   {product.category}
                 </td>
-                <td className="px-6 py-4">${product.price.toFixed(2)}</td>
+                <td className="px-6 py-4">₦{product.price.toLocaleString()}</td>
                 <td className="px-6 py-4">
                   <span
                     className={`uppercase tracking-widest text-xs px-3 py-1 ${
@@ -298,11 +298,40 @@ function Products() {
                   type="file"
                   multiple
                   accept="image/*"
-                  onChange={(e) => setImages(e.target.files)}
+                  onChange={(e) => {
+                    if (!e.target.files) return;
+
+                    const newFiles = Array.from(e.target.files);
+
+                    setImages((prev) => [...prev, ...newFiles]);
+
+                    // optional: reset input so same file can be selected again
+                  }}
                   className="border border-neutral-200 px-4 py-3 text-sm text-neutral-500 cursor-pointer"
                 />
               </div>
             </div>
+            {images.length > 0 && (
+              <div className="flex flex-wrap gap-3 mt-3">
+                {images.map((img, index) => (
+                  <div key={index} className="relative">
+                    <img
+                      src={URL.createObjectURL(img)}
+                      alt="preview"
+                      className="w-20 h-20 object-cover border"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute -top-2 -right-2 bg-red-600 text-white w-6 h-6 flex items-center justify-center text-xs rounded-full hover:bg-red-700"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="flex gap-4 mt-8">
               <button
