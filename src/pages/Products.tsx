@@ -17,6 +17,27 @@ const emptyForm = {
   inStock: "true",
 };
 
+const FORM_FIELDS = [
+  { label: "Name", key: "name", placeholder: "Midnight Oud" },
+  { label: "Category", key: "category", placeholder: "fragrance" },
+  { label: "Price", key: "price", placeholder: "120" },
+  {
+    label: "Description",
+    key: "description",
+    placeholder: "A rich dark oud...",
+  },
+  {
+    label: "Ingredients (comma separated)",
+    key: "ingredients",
+    placeholder: "Oud Wood, Amber, Sandalwood",
+  },
+  {
+    label: "How to Use",
+    key: "howToUse",
+    placeholder: "Apply to pulse points...",
+  },
+];
+
 function Products() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,9 +47,11 @@ function Products() {
   const [images, setImages] = useState<File[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
   const removeImage = (index: number) => {
     setImages((prev) => prev.filter((_, i) => i !== index));
   };
+
   const fetchProducts = async () => {
     try {
       const data = await getProducts();
@@ -77,13 +100,9 @@ function Products() {
       formData.append("description", form.description);
       formData.append("howToUse", form.howToUse);
       formData.append("inStock", form.inStock);
-
-      // Convert comma-separated ingredients to array
       form.ingredients.split(",").forEach((i) => {
         formData.append("ingredients", i.trim());
       });
-
-      // Append each image file
       images.forEach((file) => {
         formData.append("images", file);
       });
@@ -122,23 +141,23 @@ function Products() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-end justify-between mb-10">
+      <div className="flex items-center justify-between gap-4 mb-8">
         <h2
           className="font-league uppercase leading-none"
-          style={{ fontSize: "clamp(36px, 5vw, 72px)" }}
+          style={{ fontSize: "clamp(32px, 5vw, 72px)" }}
         >
           Products
         </h2>
         <button
           onClick={openCreate}
-          className="bg-neutral-900 text-white px-6 py-3 uppercase tracking-widest text-sm hover:bg-neutral-700 transition-colors cursor-pointer"
+          className="bg-neutral-900 text-white px-4 sm:px-6 py-3 uppercase tracking-widest text-xs sm:text-sm hover:bg-neutral-700 transition-colors cursor-pointer shrink-0"
         >
           + Add Product
         </button>
       </div>
 
-      {/* Table */}
-      <div className="bg-white border border-neutral-200 overflow-x-auto">
+      {/* ── Desktop table (sm+) ── */}
+      <div className="hidden sm:block bg-white border border-neutral-200 overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="border-b border-neutral-200">
             <tr>
@@ -163,7 +182,7 @@ function Products() {
             {products.map((product) => (
               <tr
                 key={product._id}
-                className="border-b border-neutral-100 hover:bg-neutral-300"
+                className="border-b border-neutral-100 hover:bg-neutral-50 transition-colors"
               >
                 <td className="px-6 py-4">
                   <img
@@ -178,15 +197,7 @@ function Products() {
                 </td>
                 <td className="px-6 py-4">₦{product.price.toLocaleString()}</td>
                 <td className="px-6 py-4">
-                  <span
-                    className={`uppercase tracking-widest text-xs px-3 py-1 ${
-                      product.inStock
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
-                  >
-                    {product.inStock ? "Yes" : "No"}
-                  </span>
+                  <StockBadge inStock={product.inStock} />
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex gap-4">
@@ -210,11 +221,53 @@ function Products() {
         </table>
       </div>
 
+      {/* ── Mobile cards (below sm) ── */}
+      <div className="sm:hidden flex flex-col gap-3">
+        {products.map((product) => (
+          <div
+            key={product._id}
+            className="bg-white border border-neutral-200 p-4 flex gap-4"
+          >
+            <img
+              src={product.images?.[0] ?? "/placeholder.jpg"}
+              alt={product.name}
+              className="w-14 h-16 object-cover shrink-0"
+            />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2 mb-1">
+                <p className="font-medium text-sm truncate">{product.name}</p>
+                <StockBadge inStock={product.inStock} />
+              </div>
+              <p className="text-xs text-neutral-500 capitalize mb-1">
+                {product.category}
+              </p>
+              <p className="font-league text-lg leading-none mb-3">
+                ₦{product.price.toLocaleString()}
+              </p>
+              <div className="flex gap-4 pt-2 border-t border-neutral-100">
+                <button
+                  onClick={() => openEdit(product)}
+                  className="uppercase tracking-widest text-xs text-neutral-500 hover:text-neutral-900 transition-colors cursor-pointer"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(product._id)}
+                  className="uppercase tracking-widest text-xs text-red-400 hover:text-red-600 transition-colors cursor-pointer"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-          <div className="bg-white w-full max-w-xl max-h-[90vh] overflow-y-auto p-8">
-            <div className="flex justify-between items-center mb-8">
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50">
+          <div className="bg-white w-full sm:max-w-xl sm:rounded-none max-h-[92vh] sm:max-h-[90vh] overflow-y-auto p-6 sm:p-8">
+            <div className="flex justify-between items-center mb-6 sm:mb-8">
               <h3 className="font-league uppercase text-2xl leading-none">
                 {editing ? "Edit Product" : "New Product"}
               </h3>
@@ -227,36 +280,13 @@ function Products() {
             </div>
 
             {error && (
-              <p className="text-error text-sm uppercase tracking-widest mb-6">
+              <p className="text-red-500 text-sm uppercase tracking-widest mb-6">
                 {error}
               </p>
             )}
 
             <div className="flex flex-col gap-5">
-              {[
-                { label: "Name", key: "name", placeholder: "Midnight Oud" },
-                {
-                  label: "Category",
-                  key: "category",
-                  placeholder: "fragrance",
-                },
-                { label: "Price", key: "price", placeholder: "120" },
-                {
-                  label: "Description",
-                  key: "description",
-                  placeholder: "A rich dark oud...",
-                },
-                {
-                  label: "Ingredients (comma separated)",
-                  key: "ingredients",
-                  placeholder: "Oud Wood, Amber, Sandalwood",
-                },
-                {
-                  label: "How to Use",
-                  key: "howToUse",
-                  placeholder: "Apply to pulse points...",
-                },
-              ].map(({ label, key, placeholder }) => (
+              {FORM_FIELDS.map(({ label, key, placeholder }) => (
                 <div key={key} className="flex flex-col gap-1">
                   <label className="uppercase tracking-widest text-xs text-neutral-400">
                     {label}
@@ -300,40 +330,39 @@ function Products() {
                   accept="image/*"
                   onChange={(e) => {
                     if (!e.target.files) return;
-
-                    const newFiles = Array.from(e.target.files);
-
-                    setImages((prev) => [...prev, ...newFiles]);
-
-                    // optional: reset input so same file can be selected again
+                    setImages((prev) => [
+                      ...prev,
+                      ...Array.from(e.target.files!),
+                    ]);
                   }}
                   className="border border-neutral-200 px-4 py-3 text-sm text-neutral-500 cursor-pointer"
                 />
               </div>
+
+              {images.length > 0 && (
+                <div className="flex flex-wrap gap-3">
+                  {images.map((img, index) => (
+                    <div key={index} className="relative">
+                      <img
+                        src={URL.createObjectURL(img)}
+                        alt="preview"
+                        className="w-20 h-20 object-cover border"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute -top-2 -right-2 bg-red-600 text-white w-6 h-6 flex items-center justify-center text-xs rounded-full hover:bg-red-700"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            {images.length > 0 && (
-              <div className="flex flex-wrap gap-3 mt-3">
-                {images.map((img, index) => (
-                  <div key={index} className="relative">
-                    <img
-                      src={URL.createObjectURL(img)}
-                      alt="preview"
-                      className="w-20 h-20 object-cover border"
-                    />
 
-                    <button
-                      type="button"
-                      onClick={() => removeImage(index)}
-                      className="absolute -top-2 -right-2 bg-red-600 text-white w-6 h-6 flex items-center justify-center text-xs rounded-full hover:bg-red-700"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="flex gap-4 mt-8">
+            {/* Modal actions */}
+            <div className="flex flex-col sm:flex-row gap-3 mt-8">
               <button
                 onClick={handleSave}
                 disabled={saving}
@@ -356,6 +385,18 @@ function Products() {
         </div>
       )}
     </div>
+  );
+}
+
+function StockBadge({ inStock }: { inStock: boolean }) {
+  return (
+    <span
+      className={`uppercase tracking-widest text-xs px-3 py-1 shrink-0 ${
+        inStock ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+      }`}
+    >
+      {inStock ? "Yes" : "No"}
+    </span>
   );
 }
 
