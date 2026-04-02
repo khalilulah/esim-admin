@@ -10,6 +10,7 @@ function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
     setError("");
@@ -36,7 +37,13 @@ function Login() {
           eSim
         </h1>
 
-        <div className="bg-neutral-800 p-8 flex flex-col gap-6">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleLogin();
+          }}
+          className="bg-neutral-800 p-8 flex flex-col gap-6"
+        >
           {error && (
             <p className="text-error text-sm uppercase tracking-widest">
               {error}
@@ -60,24 +67,34 @@ function Login() {
             <label className="uppercase tracking-widest text-xs text-neutral-400">
               Password
             </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-              className="bg-neutral-700 text-white px-4 py-3 outline-none focus:ring-1 focus:ring-white text-sm"
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                className="bg-neutral-700 text-white px-4 py-3 pr-12 w-full outline-none focus:ring-1 focus:ring-white text-sm"
+                placeholder="••••••••"
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white text-sm"
+              >
+                {showPassword ? "🙈" : "👁️"}
+              </button>
+            </div>
           </div>
 
           <button
-            onClick={handleLogin}
+            type="submit"
             disabled={loading}
             className="bg-white text-neutral-900 py-4 uppercase tracking-widest text-sm hover:bg-neutral-200 transition-colors cursor-pointer disabled:opacity-50 mt-2"
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>
-        </div>
+        </form>
       </div>
     </div>
   );
